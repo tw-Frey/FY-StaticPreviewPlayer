@@ -1,9 +1,13 @@
 package tw.idv.fy.widget.staticpreview;
 
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.support.annotation.FloatRange;
 import android.view.ViewGroup;
 
-public interface IPreviewManager {
+import static android.arch.lifecycle.Lifecycle.Event.ON_DESTROY;
+
+public interface IPreviewManager extends LifecycleObserver {
     /**
      * 載入預覽資料
      */
@@ -23,5 +27,6 @@ public interface IPreviewManager {
     /**
      * 釋放預覽資料
      */
+    @OnLifecycleEvent(ON_DESTROY)
     void dispose();
 }

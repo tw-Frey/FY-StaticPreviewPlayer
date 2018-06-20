@@ -12,6 +12,7 @@ import java.util.Locale;
 import tw.idv.fy.widget.staticpreview.IPreviewManager;
 import tw.idv.fy.widget.staticpreview.R;
 
+@SuppressWarnings("unused")
 public class TextPreviewManager implements IPreviewManager {
 
     private static TextPreviewManager singleton;
@@ -27,7 +28,7 @@ public class TextPreviewManager implements IPreviewManager {
         return singleton;
     }
 
-    private TextPreviewManager(){
+    private TextPreviewManager() {
         preview_id = View.generateViewId();
     }
 
