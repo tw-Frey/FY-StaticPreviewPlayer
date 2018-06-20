@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView
+    style="@style/TextAppearance.AppCompat.Large.Inverse"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:text="50%"
+    android:id="@+id/preview"
+    android:background="#8000"
+    android:layout_width="160dp"
+    android:layout_height="90dp"
+    android:layout_gravity="center|center_vertical|center_horizontal"
+    android:gravity="center"/>
