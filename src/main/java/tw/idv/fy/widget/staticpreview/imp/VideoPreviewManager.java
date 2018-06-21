@@ -1,6 +1,8 @@
 package tw.idv.fy.widget.staticpreview.imp;
 
+import android.content.Context;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IdRes;
 import android.view.LayoutInflater;
@@ -9,8 +11,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.io.IOException;
-
 import tw.idv.fy.widget.staticpreview.IPreviewManager;
 import tw.idv.fy.widget.staticpreview.R;
 
@@ -18,32 +18,26 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
 
     private static VideoPreviewManager singleton;
 
-    public static VideoPreviewManager getInstance(String uri) {
+    public static VideoPreviewManager getInstance() {
         if (singleton == null) {
             synchronized (VideoPreviewManager.class) {
                 if (singleton == null) {
-                    singleton = new VideoPreviewManager(uri);
+                    singleton = new VideoPreviewManager();
                 }
             }
         }
         return singleton;
     }
 
-    private VideoPreviewManager(String uri) {
-        mUri = uri;
-        preview_id = View.generateViewId();
+    private VideoPreviewManager() {
+        preview_container_id = View.generateViewId();
     }
 
     /**
      * 顯示器 id
      */
     @IdRes
-    private final int preview_id;
-
-    /**
-     * 預覽資料來源
-     */
-    private final String mUri;
+    private final int preview_container_id;
 
     /**
      * 預覽資料是否載入完畢
@@ -59,24 +53,33 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      * 預覽資料長度(單位:毫秒)
      */
     private int mDuration = -1;
+
+    /**
+     *  設定播放器
+     */
+    public void setDataSource(Context context, Uri mUri) {
+        try {
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setOnPreparedListener(mp -> {
+                mDuration = mp.getDuration();
+                mMediaPlayer.start();
+                mMediaPlayer.pause();
+                isPrepared = true;
+            });
+            mMediaPlayer.setDataSource(context, mUri);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 載入預覽資料
      */
     @Override
     public void load() {
-        MediaPlayer mediaPlayer = new MediaPlayer();
-        //mediaPlayer.setOnSeekCompleteListener(MediaPlayer::pause);
-        mediaPlayer.setOnPreparedListener(mp -> {
-            mDuration = mp.getDuration();
-            mMediaPlayer = mp;
-            mMediaPlayer.start();
-            mMediaPlayer.pause();
-            isPrepared = true;
-        });
         try {
-            mediaPlayer.setDataSource(mUri);
-            mediaPlayer.prepareAsync();
-        } catch (IOException e) {
+            mMediaPlayer.prepareAsync();
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
@@ -87,13 +90,13 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     @Override
     public void show(ViewGroup host) {
         if (!isPrepared || host == null) return;
-        if (host.findViewById(preview_id) == null) {
-            View preview = LayoutInflater.from(host.getContext()).inflate(R.layout.layout_video_preview, host, false);
-            preview.setId(preview_id);
-            host.addView(preview);
-            if (preview instanceof SurfaceView) {
-                ((SurfaceView) preview).getHolder().addCallback(this);
-                ((SurfaceView) preview).setZOrderOnTop(true);
+        if (host.findViewById(preview_container_id) == null) {
+            View preview_container = LayoutInflater.from(host.getContext()).inflate(R.layout.layout_video_preview, host, false);
+            preview_container.setId(preview_container_id);
+            host.addView(preview_container);
+            if (preview_container instanceof SurfaceView) {
+                ((SurfaceView) preview_container).getHolder().addCallback(this);
+                ((SurfaceView) preview_container).setZOrderOnTop(true);
             }
         }
     }
@@ -105,7 +108,7 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     public void hide(ViewGroup host) {
         if (!isPrepared || host == null) return;
         if (mMediaPlayer != null) mMediaPlayer.setDisplay(null);
-        View preview = host.findViewById(preview_id);
+        View preview = host.findViewById(preview_container_id);
         host.removeView(preview);
         if (preview instanceof SurfaceView) {
             ((SurfaceView) preview).getHolder().removeCallback(this);
@@ -126,6 +129,7 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void dispose() {
+        if (mMediaPlayer == null) return;
         mMediaPlayer.release();
         mMediaPlayer = null;
         isPrepared = false;
