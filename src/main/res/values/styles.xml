@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.ConstraintLayout.Video.Preview" parent="">
+        <item name="android:layout_width">200dp</item>
+        <item name="android:layout_height">150dp</item>
+        <item name="android:layout_gravity">center|center_vertical|center_horizontal</item>
+    </style>
+    <style name="Base.TextAppearance.Video.Preview" parent="TextAppearance.AppCompat">
+        <item name="android:letterSpacing" tools:ignore="NewApi">0.08</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#fff</item>
+        <item name="android:gravity">end</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="Base.TextAppearance.Video.Preview.Label" parent="Base.TextAppearance.Video.Preview">
+        <item name="android:background">@drawable/bg_video_preview_label</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">start</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:textColor">#f8e71c</item>
+        <item name="android:text">跳轉</item>
+    </style>
+    <style name="Base.TextAppearance.Video.Preview.Seek" parent="Base.TextAppearance.Video.Preview">
+        <item name="android:gravity">end</item>
+        <item name="android:textColor">#f8e71c</item>
+        <item name="layout_constraintEnd_toStartOf">@id/preview_video_split</item>
+    </style>
+    <style name="Base.TextAppearance.Video.Preview.Split" parent="Base.TextAppearance.Video.Preview">
+        <item name="android:gravity">end</item>
+        <item name="android:text">\u00A0\/\u00A0</item>
+        <item name="layout_constraintEnd_toStartOf">@id/preview_video_duration</item>
+    </style>
+    <style name="Base.TextAppearance.Video.Preview.Duration" parent="Base.TextAppearance.Video.Preview">
+        <item name="android:gravity">end</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="layout_constraintEnd_toEndOf">parent</item>
+    </style>
+    <style name="Base.Surface.Video.Preview" parent="">
+        <item name="android:background">@drawable/bg_video_preview_holder</item>
+        <item name="android:layout_width">180dp</item>
+        <item name="android:layout_height">102dp</item>
+        <item name="android:layout_margin">12dp</item>
+        <item name="layout_constraintBottom_toBottomOf">parent</item>
+        <item name="layout_constraintStart_toStartOf">parent</item>
+        <item name="layout_constraintEnd_toEndOf">parent</item>
+    </style>
+    <!-- 以下是為了將來 override 用的 -->
+    <style name="ConstraintLayout.Video.Preview" parent="Base.ConstraintLayout.Video.Preview"/>
+    <style name="TextAppearance.Video.Preview.Label" parent="Base.TextAppearance.Video.Preview.Label"/>
+    <style name="TextAppearance.Video.Preview.Seek" parent="Base.TextAppearance.Video.Preview.Seek"/>
+    <style name="TextAppearance.Video.Preview.Split" parent="Base.TextAppearance.Video.Preview.Split"/>
+    <style name="TextAppearance.Video.Preview.Duration" parent="Base.TextAppearance.Video.Preview.Duration"/>
+    <style name="Surface.Video.Preview" parent="Base.Surface.Video.Preview"/>
+</resources>

@@ -44,6 +44,12 @@ public class TextPreviewManager implements IPreviewManager {
     private boolean isPrepared = false;
 
     /**
+     * 原始影片長度
+     */
+    @Override
+    public void setVideoDuration(int videoDuration){}
+
+    /**
      * 載入預覽資料
      */
     @Override

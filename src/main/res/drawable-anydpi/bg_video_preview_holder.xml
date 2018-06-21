@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bitmap
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center|center_vertical|center_horizontal"
+    android:src="@mipmap/azul_432x243"
+    android:mipMap="true"/>

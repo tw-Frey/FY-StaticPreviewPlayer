@@ -9,6 +9,10 @@ import static android.arch.lifecycle.Lifecycle.Event.ON_DESTROY;
 
 public interface IPreviewManager extends LifecycleObserver {
     /**
+     * 原始影片長度
+     */
+    void setVideoDuration(int videoDuration);
+    /**
      * 載入預覽資料
      */
     void load();

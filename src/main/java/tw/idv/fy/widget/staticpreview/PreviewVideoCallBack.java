@@ -25,6 +25,7 @@ public class PreviewVideoCallBack extends GSYSampleCallBack implements SeekBar.O
     public void onPrepared(String url, Object... objects) {
         if (mPlayerProgressBar == null) return;
         mPlayerProgressBar.setEnabled(true);
+        mPreviewManager.setVideoDuration(mPlayer.getDuration());
         isPrepared = true;
     }
 

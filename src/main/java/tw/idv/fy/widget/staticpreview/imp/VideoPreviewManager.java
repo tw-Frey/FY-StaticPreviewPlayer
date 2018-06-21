@@ -10,6 +10,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import tw.idv.fy.widget.staticpreview.IPreviewManager;
 import tw.idv.fy.widget.staticpreview.R;
@@ -50,9 +51,9 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     private MediaPlayer mMediaPlayer = null;
 
     /**
-     * 預覽資料長度(單位:毫秒)
+     * 原始影片長度(單位:秒)
      */
-    private int mDuration = -1;
+    private int mOriginVideoDuration = -1;
 
     /**
      *  設定播放器
@@ -61,7 +62,6 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
         try {
             mMediaPlayer = new MediaPlayer();
             mMediaPlayer.setOnPreparedListener(mp -> {
-                mDuration = mp.getDuration();
                 mMediaPlayer.start();
                 mMediaPlayer.pause();
                 isPrepared = true;
@@ -70,6 +70,14 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
         } catch (Throwable e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 原始影片長度(單位:秒)
+     */
+    @Override
+    public void setVideoDuration(int videoDuration){
+        mOriginVideoDuration = videoDuration / 1000;
     }
 
     /**
@@ -94,9 +102,14 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
             View preview_container = LayoutInflater.from(host.getContext()).inflate(R.layout.layout_video_preview, host, false);
             preview_container.setId(preview_container_id);
             host.addView(preview_container);
-            if (preview_container instanceof SurfaceView) {
-                ((SurfaceView) preview_container).getHolder().addCallback(this);
-                ((SurfaceView) preview_container).setZOrderOnTop(true);
+            View duration = preview_container.findViewById(R.id.preview_video_duration);
+            if (duration instanceof TextView) {
+                ((TextView) duration).setText(convert(mOriginVideoDuration));
+            }
+            View surface = preview_container.findViewById(R.id.preview_video_surface);
+            if (surface instanceof SurfaceView) {
+                ((SurfaceView) surface).getHolder().addCallback(this);
+                ((SurfaceView) surface).setZOrderOnTop(true);
             }
         }
     }
@@ -108,10 +121,11 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     public void hide(ViewGroup host) {
         if (!isPrepared || host == null) return;
         if (mMediaPlayer != null) mMediaPlayer.setDisplay(null);
-        View preview = host.findViewById(preview_container_id);
-        host.removeView(preview);
-        if (preview instanceof SurfaceView) {
-            ((SurfaceView) preview).getHolder().removeCallback(this);
+        View preview_container = host.findViewById(preview_container_id);
+        host.removeView(preview_container);
+        View surface = preview_container.findViewById(R.id.preview_video_surface);
+        if (surface instanceof SurfaceView) {
+            ((SurfaceView) surface).getHolder().removeCallback(this);
         }
     }
 
@@ -120,8 +134,12 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void seekTo(ViewGroup host, @FloatRange(from = 0.0, to = 1.0) float percent) {
-        if (!isPrepared || mMediaPlayer == null || mDuration < 0) return;
-        mMediaPlayer.seekTo((int) (percent * mDuration));
+        if (!isPrepared || mMediaPlayer == null) return;
+        mMediaPlayer.seekTo((int) (mMediaPlayer.getDuration() * percent));
+        View seek = host.findViewById(R.id.preview_video_seek);
+        if (seek instanceof TextView) {
+            ((TextView) seek).setText(convert(mOriginVideoDuration * percent));
+        }
     }
 
     /**
@@ -147,4 +165,26 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     public void surfaceDestroyed(SurfaceHolder holder) {
         mMediaPlayer.setDisplay(null);
     }
+
+    /**
+     *  浮點數 轉換 整數 再轉換 字串
+     */
+    protected String convert(float f) {
+        return convert((long) f);
+    }
+
+    /**
+     *  整數 轉換 字串
+     */
+    protected String convert(int d) {
+        return convert((long) d);
+    }
+
+    /**
+     *  長整數 轉換 字串
+     */
+    protected String convert(long l) {
+        return String.valueOf(l);
+    }
+
 }
