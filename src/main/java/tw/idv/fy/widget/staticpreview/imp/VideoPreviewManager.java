@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IdRes;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import tw.idv.fy.widget.staticpreview.IPreviewManager;
 import tw.idv.fy.widget.staticpreview.R;
+import tw.idv.fy.widget.staticpreview.convert.IConverter;
 
 public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callback {
 
@@ -167,24 +169,33 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     }
 
     /**
-     *  浮點數 轉換 整數 再轉換 字串
+     *  浮點數 轉換 長整數 再轉換 字串
      */
-    protected String convert(float f) {
+    private String convert(float f) {
         return convert((long) f);
     }
 
     /**
      *  整數 轉換 字串
      */
-    protected String convert(int d) {
+    private String convert(int d) {
         return convert((long) d);
     }
 
     /**
      *  長整數 轉換 字串
      */
-    protected String convert(long l) {
-        return String.valueOf(l);
+    private String convert(long ms) {
+        return mConverter.convert(ms);
     }
 
+    /**
+     *  設定毫秒樣式轉換器
+     */
+    @SuppressWarnings("unused")
+    public void setConverter(@Nullable IConverter converter) {
+        mConverter = converter != null ? converter : IConverter.DEFAULT;
+    }
+
+    private IConverter mConverter = IConverter.DEFAULT;
 }
