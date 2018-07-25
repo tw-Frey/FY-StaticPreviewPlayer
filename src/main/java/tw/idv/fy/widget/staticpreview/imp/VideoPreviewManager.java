@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IdRes;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 
 import tw.idv.fy.widget.staticpreview.IPreviewManager;
 import tw.idv.fy.widget.staticpreview.R;
+import tw.idv.fy.widget.staticpreview.convert.IConverter;
 
 public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callback {
 
@@ -97,8 +99,7 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void show(ViewGroup host) {
-        if (!isPrepared || host == null) return;
-        if (host.findViewById(preview_container_id) == null) {
+        if (host != null && host.findViewById(preview_container_id) == null) {
             View preview_container = LayoutInflater.from(host.getContext()).inflate(R.layout.layout_video_preview, host, false);
             preview_container.setId(preview_container_id);
             host.addView(preview_container);
@@ -106,6 +107,7 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
             if (duration instanceof TextView) {
                 ((TextView) duration).setText(convert(mOriginVideoDuration));
             }
+            if (!isPrepared) return;
             View surface = preview_container.findViewById(R.id.preview_video_surface);
             if (surface instanceof SurfaceView) {
                 ((SurfaceView) surface).getHolder().addCallback(this);
@@ -119,14 +121,15 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void hide(ViewGroup host) {
-        if (!isPrepared || host == null) return;
-        if (mMediaPlayer != null) mMediaPlayer.setDisplay(null);
+        if (host == null) return;
         View preview_container = host.findViewById(preview_container_id);
         host.removeView(preview_container);
         View surface = preview_container.findViewById(R.id.preview_video_surface);
         if (surface instanceof SurfaceView) {
             ((SurfaceView) surface).getHolder().removeCallback(this);
         }
+        if (!isPrepared || mMediaPlayer == null) return;
+        mMediaPlayer.setDisplay(null);
     }
 
     /**
@@ -134,12 +137,13 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void seekTo(ViewGroup host, @FloatRange(from = 0.0, to = 1.0) float percent) {
-        if (!isPrepared || mMediaPlayer == null) return;
-        mMediaPlayer.seekTo((int) (mMediaPlayer.getDuration() * percent));
+        if (host == null) return;
         View seek = host.findViewById(R.id.preview_video_seek);
         if (seek instanceof TextView) {
             ((TextView) seek).setText(convert(mOriginVideoDuration * percent));
         }
+        if (!isPrepared || mMediaPlayer == null) return;
+        mMediaPlayer.seekTo((int) (mMediaPlayer.getDuration() * percent));
     }
 
     /**
@@ -167,24 +171,33 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     }
 
     /**
-     *  浮點數 轉換 整數 再轉換 字串
+     *  浮點數 轉換 長整數 再轉換 字串
      */
-    protected String convert(float f) {
+    private String convert(float f) {
         return convert((long) f);
     }
 
     /**
      *  整數 轉換 字串
      */
-    protected String convert(int d) {
+    private String convert(int d) {
         return convert((long) d);
     }
 
     /**
      *  長整數 轉換 字串
      */
-    protected String convert(long l) {
-        return String.valueOf(l);
+    private String convert(long ms) {
+        return mConverter.convert(ms);
     }
 
+    /**
+     *  設定毫秒樣式轉換器
+     */
+    @SuppressWarnings("unused")
+    public void setConverter(@Nullable IConverter converter) {
+        mConverter = converter != null ? converter : IConverter.DEFAULT;
+    }
+
+    private IConverter mConverter = IConverter.DEFAULT;
 }
