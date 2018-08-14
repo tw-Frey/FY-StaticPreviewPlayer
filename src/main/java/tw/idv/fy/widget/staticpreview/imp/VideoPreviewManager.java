@@ -4,20 +4,15 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.support.annotation.FloatRange;
-import android.support.annotation.IdRes;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import tw.idv.fy.widget.staticpreview.IPreviewManager;
 import tw.idv.fy.widget.staticpreview.R;
-import tw.idv.fy.widget.staticpreview.convert.IConverter;
 
-public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callback {
+public class VideoPreviewManager extends BasePreviewManager implements SurfaceHolder.Callback {
 
     private static VideoPreviewManager singleton;
 
@@ -32,16 +27,6 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
         return singleton;
     }
 
-    private VideoPreviewManager() {
-        preview_container_id = View.generateViewId();
-    }
-
-    /**
-     * 顯示器 id
-     */
-    @IdRes
-    private final int preview_container_id;
-
     /**
      * 預覽資料是否載入完畢
      */
@@ -51,11 +36,6 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      * 預覽資料播放器
      */
     private MediaPlayer mMediaPlayer = null;
-
-    /**
-     * 原始影片長度(單位:秒)
-     */
-    private int mOriginVideoDuration = -1;
 
     /**
      *  設定播放器
@@ -75,14 +55,6 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
     }
 
     /**
-     * 原始影片長度(單位:秒)
-     */
-    @Override
-    public void setVideoDuration(int videoDuration){
-        mOriginVideoDuration = videoDuration / 1000;
-    }
-
-    /**
      * 載入預覽資料
      */
     @Override
@@ -99,20 +71,16 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void show(ViewGroup host) {
-        if (host != null && host.findViewById(preview_container_id) == null) {
-            View preview_container = LayoutInflater.from(host.getContext()).inflate(R.layout.layout_video_preview, host, false);
-            preview_container.setId(preview_container_id);
-            host.addView(preview_container);
-            View duration = preview_container.findViewById(R.id.preview_video_duration);
-            if (duration instanceof TextView) {
-                ((TextView) duration).setText(convert(mOriginVideoDuration));
-            }
-            if (!isPrepared) return;
-            View surface = preview_container.findViewById(R.id.preview_video_surface);
-            if (surface instanceof SurfaceView) {
-                ((SurfaceView) surface).getHolder().addCallback(this);
-                ((SurfaceView) surface).setZOrderOnTop(true);
-            }
+        super.show(host);
+        if (host == null || !isPrepared) return;
+        View preview_layout = host.findViewById(preview_layout_id);
+        View preview_container, preview_surface;
+        if (preview_layout != null && (preview_container = preview_layout.findViewById(R.id.preview_container)) instanceof ViewGroup) {
+            preview_surface = LayoutInflater.from(host.getContext()).inflate(R.layout.layout_video_preview, (ViewGroup) preview_container, false);
+            if (!(preview_surface instanceof SurfaceView)) return;
+            ((SurfaceView) preview_surface).getHolder().addCallback(this);
+            ((SurfaceView) preview_surface).setZOrderOnTop(true);
+            ((ViewGroup) preview_container).addView(preview_surface);
         }
     }
 
@@ -121,15 +89,17 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void hide(ViewGroup host) {
-        if (host == null) return;
-        View preview_container = host.findViewById(preview_container_id);
-        host.removeView(preview_container);
-        View surface = preview_container.findViewById(R.id.preview_video_surface);
-        if (surface instanceof SurfaceView) {
-            ((SurfaceView) surface).getHolder().removeCallback(this);
+        if (host != null) {
+            View preview_layout = host.findViewById(preview_layout_id);
+            View preview_surface;
+            if (preview_layout != null && (preview_surface = preview_layout.findViewById(R.id.preview_surface)) instanceof SurfaceView) {
+                ((SurfaceView) preview_surface).getHolder().removeCallback(this);
+            }
         }
-        if (!isPrepared || mMediaPlayer == null) return;
-        mMediaPlayer.setDisplay(null);
+        if (mMediaPlayer != null) {
+            mMediaPlayer.setDisplay(null);
+        }
+        super.hide(host);
     }
 
     /**
@@ -137,11 +107,7 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
      */
     @Override
     public void seekTo(ViewGroup host, @FloatRange(from = 0.0, to = 1.0) float percent) {
-        if (host == null) return;
-        View seek = host.findViewById(R.id.preview_video_seek);
-        if (seek instanceof TextView) {
-            ((TextView) seek).setText(convert(mOriginVideoDuration * percent));
-        }
+        super.seekTo(host, percent);
         if (!isPrepared || mMediaPlayer == null) return;
         mMediaPlayer.seekTo((int) (mMediaPlayer.getDuration() * percent));
     }
@@ -170,34 +136,4 @@ public class VideoPreviewManager implements IPreviewManager, SurfaceHolder.Callb
         mMediaPlayer.setDisplay(null);
     }
 
-    /**
-     *  浮點數 轉換 長整數 再轉換 字串
-     */
-    private String convert(float f) {
-        return convert((long) f);
-    }
-
-    /**
-     *  整數 轉換 字串
-     */
-    private String convert(int d) {
-        return convert((long) d);
-    }
-
-    /**
-     *  長整數 轉換 字串
-     */
-    private String convert(long ms) {
-        return mConverter.convert(ms);
-    }
-
-    /**
-     *  設定毫秒樣式轉換器
-     */
-    @SuppressWarnings("unused")
-    public void setConverter(@Nullable IConverter converter) {
-        mConverter = converter != null ? converter : IConverter.DEFAULT;
-    }
-
-    private IConverter mConverter = IConverter.DEFAULT;
 }
