@@ -11,11 +11,11 @@ import tw.idv.fy.widget.staticpreview.IPreviewManager;
 import tw.idv.fy.widget.staticpreview.R;
 import tw.idv.fy.widget.staticpreview.time.IStamp;
 
+@SuppressWarnings("unused")
 public class BasePreviewManager implements IPreviewManager, IStamp {
 
     private static BasePreviewManager singleton;
 
-    @SuppressWarnings("unused")
     public static BasePreviewManager getInstance() {
         if (singleton == null) {
             synchronized (BasePreviewManager.class) {
@@ -43,7 +43,14 @@ public class BasePreviewManager implements IPreviewManager, IStamp {
     private int mOriginVideoDuration = -1;
 
     /**
-     * 原始影片長度(單位:秒)
+     * 取得原始影片長度(單位:秒)
+     */
+    public int getVideoDuration() {
+        return mOriginVideoDuration;
+    }
+
+    /**
+     * 設定原始影片長度(單位:秒)
      */
     @Override
     public void setVideoDuration(int videoDuration){

@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 
 import tw.idv.fy.widget.staticpreview.R;
 
+@SuppressWarnings("unused")
 public class VideoPreviewManager extends BasePreviewManager implements SurfaceHolder.Callback {
 
     private static VideoPreviewManager singleton;
