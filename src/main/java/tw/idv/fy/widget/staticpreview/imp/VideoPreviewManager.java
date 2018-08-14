@@ -41,6 +41,7 @@ public class VideoPreviewManager extends BasePreviewManager implements SurfaceHo
     /**
      *  設定播放器
      */
+    @Deprecated
     public void setDataSource(Context context, Uri mUri) {
         try {
             mMediaPlayer = new MediaPlayer();
@@ -50,6 +51,24 @@ public class VideoPreviewManager extends BasePreviewManager implements SurfaceHo
                 isPrepared = true;
             });
             mMediaPlayer.setDataSource(context, mUri);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     *  設定播放器<br>
+     *  limit: file-path or http/rtsp URI
+     */
+    public void setDataSource(Uri mUri) {
+        try {
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setOnPreparedListener(mp -> {
+                mMediaPlayer.start();
+                mMediaPlayer.pause();
+                isPrepared = true;
+            });
+            mMediaPlayer.setDataSource(mUri.toString());
         } catch (Throwable e) {
             e.printStackTrace();
         }
