@@ -2,6 +2,7 @@ package tw.idv.fy.widget.staticpreview.imp;
 
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,11 +13,9 @@ import com.bumptech.glide.RequestBuilder;
 
 import tw.idv.fy.widget.staticpreview.R;
 
+@SuppressWarnings("unused")
 public class ImagePreviewManager extends BasePreviewManager {
 
-    /*
-     * TODO: use ViewModel
-     */
     private static ImagePreviewManager singleton;
 
     public static ImagePreviewManager getInstance() {
@@ -43,7 +42,7 @@ public class ImagePreviewManager extends BasePreviewManager {
     /**
      * preview thumb 呈現窗口
      */
-    private ImageView preview_image;
+    private ImageViewTarget preview_target;
 
     /**
      *  設定 影片縮圖 API
@@ -59,8 +58,9 @@ public class ImagePreviewManager extends BasePreviewManager {
         View preview_layout = host.findViewById(preview_layout_id);
         View preview_container;
         if (preview_layout != null && (preview_container = preview_layout.findViewById(R.id.preview_container)) instanceof ViewGroup) {
-            preview_image = (ImageView) LayoutInflater.from(host.getContext()).inflate(R.layout.layout_image_preview, (ViewGroup) preview_container, false);
+            ImageView preview_image = (ImageView) LayoutInflater.from(host.getContext()).inflate(R.layout.layout_image_preview, (ViewGroup) preview_container, false);
             ((ViewGroup) preview_container).addView(preview_image);
+            preview_target = new ImageViewTarget(preview_image);
         }
         // 建立 Glide 請求建構子
         requestBuilder = Glide.with(host).asDrawable();
@@ -68,28 +68,46 @@ public class ImagePreviewManager extends BasePreviewManager {
 
     @Override
     public void hide(ViewGroup host) {
-        Glide.with(host).clear(preview_image);
+        Glide.with(host).clear(preview_target);
+        preview_target = null;
         requestBuilder = null;
-        preview_image = null;
         super.hide(host);
     }
 
     @Override
     public void seekTo(ViewGroup host, float percent) {
         super.seekTo(host, percent);
-        if (host == null || preview_image == null) return;
+        if (host == null || preview_target == null) return;
         String seekToSecond = String.valueOf((int) (getVideoDuration() * percent));
         Uri nowUri = mThumbUri.buildUpon()
                 .appendQueryParameter("second", seekToSecond)
                 .build();
         // 載入 preview thumb
-        requestBuilder.load(nowUri).into(preview_image);
+        requestBuilder.load(nowUri).into(preview_target);
     }
 
     @Override
     public void dispose() {
         requestBuilder = null;
-        preview_image = null;
+        preview_target = null;
         mThumbUri = null;
+    }
+
+    private static class ImageViewTarget extends com.bumptech.glide.request.target.ImageViewTarget<Drawable> {
+
+        private ImageViewTarget(ImageView view) {
+            super(view);
+        }
+
+        @Override
+        public void setDrawable(Drawable drawable) {
+            if (drawable == null) return;
+            super.setDrawable(drawable);
+        }
+
+        @Override
+        protected void setResource(@Nullable Drawable resource) {
+            setDrawable(resource);
+        }
     }
 }
